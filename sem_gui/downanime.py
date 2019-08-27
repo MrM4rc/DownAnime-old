@@ -1,6 +1,7 @@
 from robobrowser import RoboBrowser
 import re, requests
 from bs4 import BeautifulSoup as bs
+import time, platform, threading, os
 
 class DownAnime():
 
@@ -9,6 +10,7 @@ class DownAnime():
 		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
 		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
+		self.completo = False
 
 	#faz a requisição do site
 	def abrir_site(self, link="https://animesbz.com/episodios-de-animes/"):
@@ -106,18 +108,64 @@ class DownAnime():
 
 	
 	def baixar_ep(self, link, nome):
+		try:
+			#intancia do robobrowser para pega o link do video
+			baixar = RoboBrowser(history=True, parser="html.parser")
+			baixar.open(link, method="get")
+			#pega o elemento com tag de video
+			video = baixar.find_all("video")
+			#inicia um thread para fazer uma barra de carregamento
+			thread = threading.Thread(target=self.baixando)
+			thread.start()
+			#faz a requisão do video
+			baixar = requests.get(video[0].source["src"])
+			#abre o arquivo com formato mp4 para salva o video
+			arquivo = open(f"{nome}.mp4", "wb")
+			#escreve os bits no arquivo
+			arquivo.write(baixar.content)
+			self.completo = True
+			#fecha o arquivo
+			arquivo.close()
 
-		#intancia do robobrowser para pega o link do video
-		baixar = RoboBrowser(history=True, parser="html.parser")
-		baixar.open(link, method="get")
-		#pega o elemento com tag de video
-		video = baixar.find_all("video")
-		#faz a requisão do video
-		baixar = requests.get(video[0].source["src"])
-		#abre o arquivo com formato mp4 para salva o video
-		arquivo = open(f"{nome}.mp4", "wb")
-		#escreve os bits no arquivo
-		arquivo.write(baixar.content)
-		#fecha o arquivo
-		arquivo.close()
+			if self.sistema == "Linux":
+
+				os.system(f"mv {nome}.mp4 ~/Downloads/")
+
+		except KeyboardInterrupt:
+
+			self.completo = True
+			print("programa parado")
+
+	
+	def baixando(self):
+		
+		self.sistema = platform.system()
+
+		if self.sistema == "Linux":
+
+			os.system("clear")
+
+		elif self.sistema == "Windows":
+
+			os.system("cls")
+
+		while not self.completo:
+			
+			print("baixando", end="", flush=True)
+
+			for c in [".",".",".","."]:
+
+				print(c, end="", flush=True)
+				time.sleep(1)
+			print()
+
+			if self.sistema == "Linux":
+
+				os.system("clear")
+
+			elif self.sistema == "Windows":
+
+				os.system("cls")
+
+
 
