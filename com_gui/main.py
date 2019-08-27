@@ -117,9 +117,7 @@ class Janela_Principal(QMainWindow):
 if __name__ == "__main__":
 
 	app = QApplication(sys.argv)
-	print("foi")
 	janela = Janela_Principal()
 	janela.show()
-	print("foi")
 	sys.exit(app.exec_())
 

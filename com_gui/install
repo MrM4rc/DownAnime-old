@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mkdir /bin/DownAnime/
+cp main.py inter_downanime.py downanime.py /bin/DownAnime/
+cp downanime /bin/
+
