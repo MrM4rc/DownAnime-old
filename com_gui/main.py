@@ -93,8 +93,6 @@ class Janela_Principal(QMainWindow):
 		
 		#inicia o download em uma thread
 		t = Thread(target=down.baixar_ep, args=(link, nome))
-
-		baixar = Baixando()
 		t.start()
 
 	def alterar(self):
