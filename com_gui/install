@@ -4,3 +4,4 @@ wget -O downanime https://www86.zippyshare.com/d/CCwmgLhx/48929/downanime
 chmod +x downanime
 sudo mv downanime /bin/
 
+
