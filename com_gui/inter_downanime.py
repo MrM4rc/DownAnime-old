@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'downanime.ui',
 # licensing of 'downanime.ui' applies.
 #
-# Created: Tue Aug 27 14:28:25 2019
+# Created: Tue Aug 27 21:21:04 2019
 #      by: pyside2-uic  running on PySide2 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.area_animes = QtWidgets.QWidget()
-        self.area_animes.setGeometry(QtCore.QRect(0, 0, 583, 345))
+        self.area_animes.setGeometry(QtCore.QRect(0, 0, 583, 311))
         self.area_animes.setStyleSheet("background-color: #292326;")
         self.area_animes.setObjectName("area_animes")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.area_animes)
@@ -61,6 +61,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.area_animes_r)
         self.scrollArea.setWidget(self.area_animes)
         self.verticalLayout_2.addWidget(self.scrollArea)
+        self.progressBar = QtWidgets.QProgressBar(self.central)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+        self.verticalLayout_2.addWidget(self.progressBar)
         self.area_resultados = QtWidgets.QHBoxLayout()
         self.area_resultados.setContentsMargins(-1, -1, 0, -1)
         self.area_resultados.setObjectName("area_resultados")

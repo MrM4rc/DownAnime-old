@@ -9,7 +9,6 @@ class DownAnime():
 		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
 		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
-
 		self.baixado = False
 
 	#faz a requisição do site
@@ -111,17 +110,19 @@ class DownAnime():
 
 		#intancia do robobrowser para pega o link do video
 		baixar = RoboBrowser(history=True, parser="html.parser")
-		print("baixando")
+		self.baixado = False
 		baixar.open(link, method="get")
 		#pega o elemento com tag de video
 		video = baixar.find_all("video")
-		#faz a requisão do video
-		baixar = requests.get(video[0].source["src"])
-		self.baixado = True
-		#abre o arquivo com formato mp4 para salva o video
-		arquivo = open(f"{nome}.mp4", "wb")
-		#escreve os bits no arquivo
-		arquivo.write(baixar.content)
-		#fecha o arquivo
-		arquivo.close()
+		
+		#abre o arquivo para escrita
+		with open(f"{nome}.mp4", "wb") as arquivo:
+
+			#faz a requisão do video
+			baixar = requests.get(video[0].source["src"])
+			self.baixado = True
+			#escreve os bits no arquivo
+			arquivo.write(baixar.content)
+			#fecha o arquivo
+			arquivo.close()
 

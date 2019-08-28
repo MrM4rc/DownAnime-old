@@ -1,6 +1,6 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QApplication,  QLabel
-from PySide2.QtCore import QFile, Slot, QTime
+from PySide2.QtWidgets import QMainWindow, QApplication, QLabel, QProgressBar
+from PySide2.QtCore import QFile, Slot, QTimer, QThread
 from inter_downanime import Ui_MainWindow
 from downanime import DownAnime
 from threading import Thread
@@ -16,6 +16,7 @@ class Label(QLabel):
 
 		self.setStyleSheet("""
 				color: red;
+				background-color: #606060;
 				""")
 
 	def mostra_anime_ep(self, obj):
@@ -31,8 +32,10 @@ class Label(QLabel):
 		"""
 		chama a função para baixar os episódios
 		"""
-
-		self.pai.baixar_ep(self.link, self.text())
+		self.setStyleSheet("""
+				background-color: rgb(255, 255, 255)
+				""")
+		self.pai.baixar_ep(self.link, self.text(), self)
 
 
 class Janela_Principal(QMainWindow):
@@ -44,7 +47,26 @@ class Janela_Principal(QMainWindow):
 		self.ui.setupUi(self)
 		#conecta o botão a função de pesquisa
 		self.ui.botao_pesquisa.clicked.connect(self.pesquisar)
+		self.barra = 0
+		self.link_clicado = None
 	
+	def baixando(self):
+		
+		global down
+
+		if not down.baixado:
+
+			self.barra += 1
+			self.ui.progressBar.setValue(self.barra)
+			
+			if self.barra == 100:
+				
+				self.barra = 0
+
+		else:
+
+			self.ui.progressBar.setValue(100)
+
 	@Slot()
 	def pesquisar(self, pos):
 
@@ -72,6 +94,7 @@ class Janela_Principal(QMainWindow):
 	def episodios(self):
 		
 		global down
+
 		
 		#limpa a area onde fica os animes/episódios
 		for i in reversed(range(self.ui.area_animes_r.count())):
@@ -87,30 +110,44 @@ class Janela_Principal(QMainWindow):
 			label.mousePressEvent = label.baixar
 			self.ui.area_animes_r.addWidget(label)
 
-	def baixar_ep(self, link, nome):
+	def baixar_ep(self, link, nome, obj):
 
 		global down
 		
 		#inicia o download em uma thread
-		t = Thread(target=down.baixar_ep, args=(link, nome))
-		t.start()
+		self.link = link
+		self.nome = nome
 
-	def alterar(self):
+		if self.link_clicado == None:
+			self.link_clicado = obj
+		else:
+
+			self.link_clicado.setStyleSheet("""
+					background-color: #606060;
+					color: red;
+					""")
+			self.link_clicado = obj
+
+		self.ui.baixar_btn.clicked.connect(self.baixar)
+
+	def baixar(self):
 		"""
 		Esta função vai mostra um mansagem de carregando ate que o anime seja baixado
 		"""
+
+		global down
 		carregando = "baixando"
 
-		for c in range(0, 6):
-			
-			carregando += "."
+		t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
+		t.start()
+		self.link_clicado.setStyleSheet("""
+				background-color: #606060;
+				color: red;
+				""")
 
-			for i in reversed(range(self.ui.area_animes_r.count())):
-
-				self.ui.area_animes_r.itemAt(i).widget().deleteLater()
-
-			self.ui.area_animes_r.addWidget(Label(text=carregando))
-
+		time = QTimer(self)
+		time.timeout.connect(self.baixando)
+		time.start(500)
 
 if __name__ == "__main__":
 
