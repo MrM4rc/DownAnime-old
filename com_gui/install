@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir /bin/DownAnime/
-cp main.py inter_downanime.py downanime.py /bin/DownAnime/
-cp downanime /bin/
+wget -O downanime https://www86.zippyshare.com/d/CCwmgLhx/48929/downanime
+chmod +x downanime
+sudo mv downanime /bin/
 
