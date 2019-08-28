@@ -8,7 +8,7 @@
 <P>primeiro instale as dependências</p>
 <p><b>pip install requests</b><br><b>pip install robobrowser</b></p>
 
-<p>Depois é so ir na pasta "sem_gui" e executar: "python main.py"</p>
+<p>Depois é so escolher a versão desejada e executar o comando: python main.py</p>
 
 <h2>Para usuários linux</h2>
 <p>Você pode executar o install.sh com o comando: "sudo ./install.sh", e podera chama o downanime de qualquer lugar usando o comando: "downanime.sh" no terminal</p>

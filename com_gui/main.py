@@ -131,8 +131,7 @@ class Janela_Principal(QMainWindow):
 		self.ui.baixar_btn.clicked.connect(self.baixar)
 
 	def baixar(self):
-		"""
-		Esta função vai mostra um mansagem de carregando ate que o anime seja baixado
+		"""		Esta função inicia o download do episodio em uma nova thread para que não atrapalhe o fluxo normal do programa.
 		"""
 
 		global down
