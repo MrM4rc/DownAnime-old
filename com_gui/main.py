@@ -50,22 +50,21 @@ class Janela_Principal(QMainWindow):
 		self.barra = 0
 		self.link_clicado = None
 	
+
 	def baixando(self):
 		
 		global down
 
-		if not down.baixado:
+		if down.total < int(down.header_total_arquivo.headers["content-length"]):
 
-			self.barra += 1
-			self.ui.progressBar.setValue(self.barra)
-			
-			if self.barra == 100:
-				
-				self.barra = 0
+			porcentagem = down.total/int(down.header_total_arquivo.headers["content-length"])
+			porcentagem *= 100
+			self.ui.progressBar.setValue(porcentagem)
 
 		else:
 
 			self.ui.progressBar.setValue(100)
+			self.time_progress_bar.stop()
 
 	@Slot()
 	def pesquisar(self, pos):
@@ -114,12 +113,15 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#inicia o download em uma thread
+		#pega o link do video para baixar
 		self.link = link
+		#pega o nome do anime
 		self.nome = nome
 
+		#verifica se a variavel ja contem algum label clicado
 		if self.link_clicado == None:
 			self.link_clicado = obj
+		#troca a cor do label clicado anteriomente
 		else:
 
 			self.link_clicado.setStyleSheet("""
@@ -128,6 +130,7 @@ class Janela_Principal(QMainWindow):
 					""")
 			self.link_clicado = obj
 
+		#conecta o botão de baixar a função baixar
 		self.ui.baixar_btn.clicked.connect(self.baixar)
 
 	def baixar(self):
@@ -135,18 +138,22 @@ class Janela_Principal(QMainWindow):
 		"""
 
 		global down
-		carregando = "baixando"
-
-		t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
-		t.start()
+		
+		#inicia uma thread para baixar o arquivo
+		self.t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
+		#da um start na thread
+		self.t.start()
+		#traz a cor da label do episódio ao normal
 		self.link_clicado.setStyleSheet("""
 				background-color: #606060;
 				color: red;
 				""")
-
-		time = QTimer(self)
-		time.timeout.connect(self.baixando)
-		time.start(500)
+		#instancia do objeto QTimer para agenda um evento a cada 500 milissegundos
+		self.time_progress_bar = QTimer(self)
+		#conecta esse QTimer a função baixando da classe
+		self.time_progress_bar.timeout.connect(self.baixando)
+		#inicia a contagem
+		self.time_progress_bar.start(30000)
 
 if __name__ == "__main__":
 

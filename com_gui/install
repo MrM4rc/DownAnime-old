@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wget -O downanime https://www86.zippyshare.com/d/CCwmgLhx/48929/downanime
+wget -O downanime https://www103.zippyshare.com/d/NyLUckzd/30365/downanime
 chmod +x downanime
 sudo mv downanime /bin/
 

@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'downanime.ui',
 # licensing of 'downanime.ui' applies.
 #
-# Created: Tue Aug 27 21:21:04 2019
+# Created: Thu Aug 29 18:36:22 2019
 #      by: pyside2-uic  running on PySide2 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,6 +48,7 @@ class Ui_MainWindow(object):
         self.area_pesuisa.addWidget(self.botao_pesquisa)
         self.verticalLayout_2.addLayout(self.area_pesuisa)
         self.scrollArea = QtWidgets.QScrollArea(self.central)
+        self.scrollArea.setStyleSheet("")
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.area_animes = QtWidgets.QWidget()
@@ -62,6 +63,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidget(self.area_animes)
         self.verticalLayout_2.addWidget(self.scrollArea)
         self.progressBar = QtWidgets.QProgressBar(self.central)
+        self.progressBar.setStyleSheet("background-color: white;")
         self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName("progressBar")
         self.verticalLayout_2.addWidget(self.progressBar)

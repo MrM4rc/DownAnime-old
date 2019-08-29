@@ -110,19 +110,26 @@ class DownAnime():
 
 		#intancia do robobrowser para pega o link do video
 		baixar = RoboBrowser(history=True, parser="html.parser")
-		self.baixado = False
+		#variavel para controla o total ja baixado
+		self.total = 0
+		#abre o site do video
 		baixar.open(link, method="get")
 		#pega o elemento com tag de video
 		video = baixar.find_all("video")
-		
+		#pega os headers da pagina do video para saber o total ja baixado
+		self.header_total_arquivo = requests.head(video[0].source["src"])
 		#abre o arquivo para escrita
-		with open(f"{nome}.mp4", "wb") as arquivo:
+		with open(f"{nome}.mp4", "ab") as arquivo:
 
 			#faz a requisão do video
-			baixar = requests.get(video[0].source["src"])
-			self.baixado = True
-			#escreve os bits no arquivo
-			arquivo.write(baixar.content)
+			baixar = requests.get(video[0].source["src"], stream=True)
+			#faz a transmissão dos por partes
+			for chunk in baixar.iter_content(chunk_size=1048576):
+				#escreve no arquivo os bytes recebidos
+				arquivo.write(chunk)
+				#soma no total a quantidade ja baixada
+				self.total += 1048576
+
 			#fecha o arquivo
 			arquivo.close()
 
