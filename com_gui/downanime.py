@@ -1,6 +1,7 @@
 from robobrowser import RoboBrowser
 import re, requests
 from bs4 import BeautifulSoup as bs
+from threading import Thread
 
 class DownAnime():
 
@@ -9,7 +10,7 @@ class DownAnime():
 		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
 		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
-		self.baixado = False
+		self.nome_ep = self.link_ep = ""
 
 	#faz a requisição do site
 	def abrir_site(self, link="https://animesbz.com/episodios-de-animes/"):
@@ -104,7 +105,6 @@ class DownAnime():
 		for index, ep in enumerate(self.anime_episodios):
 				
 			print(f"{index} -- {ep.text}")
-
 	
 	def baixar_ep(self, link, nome):
 
@@ -119,17 +119,19 @@ class DownAnime():
 		#pega os headers da pagina do video para saber o total ja baixado
 		self.header_total_arquivo = requests.head(video[0].source["src"])
 		#abre o arquivo para escrita
-		with open(f"{nome}.mp4", "ab") as arquivo:
+		arquivo = open(f"{nome}.mp4", "ab")
+		#faz a requisão do video
+		baixar = requests.get(video[0].source["src"], stream=True)
+		#faz a transmissão dos por partes
+		for chunk in baixar.iter_content(chunk_size=1048576):
+			#escreve no arquivo os bytes recebidos
+			arquivo.write(chunk)
+			#soma no total a quantidade ja baixada
+			self.total += 1048576
 
-			#faz a requisão do video
-			baixar = requests.get(video[0].source["src"], stream=True)
-			#faz a transmissão dos por partes
-			for chunk in baixar.iter_content(chunk_size=1048576):
-				#escreve no arquivo os bytes recebidos
-				arquivo.write(chunk)
-				#soma no total a quantidade ja baixada
-				self.total += 1048576
-
-			#fecha o arquivo
-			arquivo.close()
+		#fecha o arquivo
+		arquivo.close()
+		baixar.close()
+		
+		return True
 

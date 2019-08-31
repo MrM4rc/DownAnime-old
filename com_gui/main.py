@@ -1,9 +1,11 @@
 import sys
 from PySide2.QtWidgets import QMainWindow, QApplication, QLabel, QProgressBar
-from PySide2.QtCore import QFile, Slot, QTimer, QThread
+from PySide2.QtGui import QIcon
+from PySide2.QtCore import QFile, Slot, QTimer, QThread, SIGNAL
 from inter_downanime import Ui_MainWindow
 from downanime import DownAnime
-from threading import Thread
+import _thread
+from threading import Thread, Event
 
 #instancia do DownAnime
 down = DownAnime()
@@ -43,28 +45,39 @@ class Janela_Principal(QMainWindow):
 	def __init__(self):
 		super(Janela_Principal, self).__init__()
 
+		global down
+
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
+		self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
+		self.setWindowIcon(self.icon)
 		#conecta o botão a função de pesquisa
 		self.ui.botao_pesquisa.clicked.connect(self.pesquisar)
 		self.barra = 0
+		#armazena a label que foi clicada para trocar cor e pega links
 		self.link_clicado = None
-	
+		#conecta o botão de baixar a função baixar
+		self.ui.baixar_btn.clicked.connect(self.baixar)
 
 	def baixando(self):
 		
 		global down
 
 		if down.total < int(down.header_total_arquivo.headers["content-length"]):
-
+			#calculo de porcentagem para pega progresso do download
 			porcentagem = down.total/int(down.header_total_arquivo.headers["content-length"])
+			#multiplica o valor obtido no calculo de porcentagem para pega um valor mais redondo
 			porcentagem *= 100
+			#altera o valor da barra de progresso
 			self.ui.progressBar.setValue(porcentagem)
 
 		else:
-
+			#altera o valo da barra pra 100 quando o download ja foi feito
 			self.ui.progressBar.setValue(100)
+			#para um objeto QTimer que fica chamando essa função a cada 30s
 			self.time_progress_bar.stop()
+			#espera finalizar a thread de download
+			self.t.join()
 
 	@Slot()
 	def pesquisar(self, pos):
@@ -83,10 +96,15 @@ class Janela_Principal(QMainWindow):
 		#coloca os resultados na tela
 		for resu in down.resultados:
 			
+			#cria label com nomes do anime
 			label = Label(text=resu["nome"][0])
+			#pega o index para depois passa qual anime foi escolhido da lista
 			label.escolha = resu["index"]
+			#adiciona a função mostra do label ao mousepressevent
 			label.mousePressEvent = label.mostra_anime_ep
+			#atribui uma refencia a classe que lhe instanciou
 			label.pai = self
+			#adiciona o label a area de animes
 			self.ui.area_animes_r.addWidget(label)
 
 
@@ -103,10 +121,15 @@ class Janela_Principal(QMainWindow):
 		#constroi a lista de episódios
 		for ep in down.anime_episodios:
 			
+			#constroi label com nome dos episodios
 			label = Label(text=ep.text)
+			#pega o link do episodio
 			label.link = ep.a["href"]
+			#refencia a classe que lhe instanciou
 			label.pai = self
+			#atribui uma função sua ao mousepressevent
 			label.mousePressEvent = label.baixar
+			#adiciona o label a area de animes
 			self.ui.area_animes_r.addWidget(label)
 
 	def baixar_ep(self, link, nome, obj):
@@ -130,8 +153,6 @@ class Janela_Principal(QMainWindow):
 					""")
 			self.link_clicado = obj
 
-		#conecta o botão de baixar a função baixar
-		self.ui.baixar_btn.clicked.connect(self.baixar)
 
 	def baixar(self):
 		"""		Esta função inicia o download do episodio em uma nova thread para que não atrapalhe o fluxo normal do programa.
@@ -139,10 +160,10 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#inicia uma thread para baixar o arquivo
+		#inicia uma thread para baixar o anime
 		self.t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
-		#da um start na thread
 		self.t.start()
+		
 		#traz a cor da label do episódio ao normal
 		self.link_clicado.setStyleSheet("""
 				background-color: #606060;
