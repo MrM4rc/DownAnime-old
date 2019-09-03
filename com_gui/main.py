@@ -17,27 +17,36 @@ class Label(QLabel):
 		super(Label, self).__init__(**kwargs)
 
 		self.setStyleSheet("""
-				color: red;
+				color: white;
 				background-color: #606060;
 				""")
+		self.marcar = True
 
 	def mostra_anime_ep(self, obj):
 		"""
 		Esta função envia o index do anime escolhido para o DownAnime pesquisa pelos episódios
 		"""
 		global down
+		global janela
+		
 		down.escolha_anime = self.escolha
 		down.episodios()
-		self.pai.episodios()
+		janela.episodios()
 
 	def baixar(self, obj):
 		"""
 		chama a função para baixar os episódios
 		"""
+		
+		global janela
+		
 		self.setStyleSheet("""
-				background-color: rgb(255, 255, 255)
+				background-color: rgb(255, 255, 255);
+				color:black;
 				""")
-		self.pai.baixar_ep(self.link, self.text(), self)
+        #verifica se algum label foi clicado, possibilitando o download
+		janela.download_on = True
+		janela.baixar_ep(self.link, self.text(), self)
 
 
 class Janela_Principal(QMainWindow):
@@ -46,10 +55,12 @@ class Janela_Principal(QMainWindow):
 		super(Janela_Principal, self).__init__()
 
 		global down
-
+		
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
-		self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
+		self.icon = QIcon("./downanime.ico")
+		#Adiciona icone a janela quando compilado com pyinstaller
+		#self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
 		self.setWindowIcon(self.icon)
 		#conecta o botão a função de pesquisa
 		self.ui.botao_pesquisa.clicked.connect(self.pesquisar)
@@ -58,6 +69,7 @@ class Janela_Principal(QMainWindow):
 		self.link_clicado = None
 		#conecta o botão de baixar a função baixar
 		self.ui.baixar_btn.clicked.connect(self.baixar)
+		self.download_on = False
 
 	def baixando(self):
 		
@@ -102,8 +114,6 @@ class Janela_Principal(QMainWindow):
 			label.escolha = resu["index"]
 			#adiciona a função mostra do label ao mousepressevent
 			label.mousePressEvent = label.mostra_anime_ep
-			#atribui uma refencia a classe que lhe instanciou
-			label.pai = self
 			#adiciona o label a area de animes
 			self.ui.area_animes_r.addWidget(label)
 
@@ -115,8 +125,10 @@ class Janela_Principal(QMainWindow):
 		
 		#limpa a area onde fica os animes/episódios
 		for i in reversed(range(self.ui.area_animes_r.count())):
-
+			
 			self.ui.area_animes_r.itemAt(i).widget().deleteLater()
+			#evita bugs na hora refenciar esse atributo
+			self.link_clicado = None
 		
 		#constroi a lista de episódios
 		for ep in down.anime_episodios:
@@ -125,8 +137,6 @@ class Janela_Principal(QMainWindow):
 			label = Label(text=ep.text)
 			#pega o link do episodio
 			label.link = ep.a["href"]
-			#refencia a classe que lhe instanciou
-			label.pai = self
 			#atribui uma função sua ao mousepressevent
 			label.mousePressEvent = label.baixar
 			#adiciona o label a area de animes
@@ -136,21 +146,48 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#pega o link do video para baixar
-		self.link = link
-		#pega o nome do anime
-		self.nome = nome
-
+		
 		#verifica se a variavel ja contem algum label clicado
 		if self.link_clicado == None:
+			
+			#atribui o label a essa variavel
 			self.link_clicado = obj
+			#variavel que indica se é pra marca o episodio para baixar ou não
+			self.link_clicado.marcar = False
+			
+			#pega o link do video para baixar
+			self.link = link
+			#pega o nome do anime
+			self.nome = nome
+			
+			
 		#troca a cor do label clicado anteriomente
+		elif self.link_clicado == obj and not self.link_clicado.marcar:
+			
+			self.link_clicado.marcar = True
+			self.link_clicado.setStyleSheet("""
+				background-color: #606060;
+				color: white;
+				""")
+			self.link = self.nome = ""
+			
+		elif self.link_clicado == obj and self.link_clicado.marcar:
+			
+			self.link_clicado.marcar = False
+			self.link_clicado.setStyleSheet("""
+				background-color: rgb(255, 255, 255);
+				color: black;
+				""")
+			
+			self.link = link
+			self.nome = nome
+			
 		else:
 
 			self.link_clicado.setStyleSheet("""
-					background-color: #606060;
-					color: red;
-					""")
+				background-color: #606060;
+				color: white;
+				""")
 			self.link_clicado = obj
 
 
@@ -160,21 +197,27 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#inicia uma thread para baixar o anime
-		self.t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
-		self.t.start()
-		
-		#traz a cor da label do episódio ao normal
-		self.link_clicado.setStyleSheet("""
-				background-color: #606060;
-				color: red;
-				""")
-		#instancia do objeto QTimer para agenda um evento a cada 500 milissegundos
-		self.time_progress_bar = QTimer(self)
-		#conecta esse QTimer a função baixando da classe
-		self.time_progress_bar.timeout.connect(self.baixando)
-		#inicia a contagem
-		self.time_progress_bar.start(30000)
+		#verifica se um label foi clicado e se o down ja esta baixando alguma coisa.
+		if self.download_on and not down.baixando:
+			
+			self.download_on = False
+			
+			#inicia uma thread para baixar o anime
+			self.t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
+			self.t.start()
+			
+			#traz a cor da label do episódio ao normal
+			self.link_clicado.setStyleSheet("""
+					background-color: #606060;
+					color: white;
+					""")
+			self.link_clicado.marcar = True
+			#instancia do objeto QTimer para agenda um evento a cada 500 milissegundos
+			self.time_progress_bar = QTimer(self)
+			#conecta esse QTimer a função baixando da classe
+			self.time_progress_bar.timeout.connect(self.baixando)
+			#inicia a contagem
+			self.time_progress_bar.start(30000)
 
 if __name__ == "__main__":
 

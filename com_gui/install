@@ -1,7 +1,0 @@
-#!/bin/bash
-
-wget -O downanime https://download1645.mediafire.com/usuittv3jaag/tgv1izh73b08hxo/downanime
-chmod +x downanime
-sudo mv downanime /bin/
-
-

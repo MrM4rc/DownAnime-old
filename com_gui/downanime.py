@@ -11,6 +11,7 @@ class DownAnime():
 		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
 		self.nome_ep = self.link_ep = ""
+		self.baixando = False
 
 	#faz a requisição do site
 	def abrir_site(self, link="https://animesbz.com/episodios-de-animes/"):
@@ -107,7 +108,9 @@ class DownAnime():
 			print(f"{index} -- {ep.text}")
 	
 	def baixar_ep(self, link, nome):
-
+        
+		#variavel para verificação se esta baixando ou não
+		self.baixando = True
 		#intancia do robobrowser para pega o link do video
 		baixar = RoboBrowser(history=True, parser="html.parser")
 		#variavel para controla o total ja baixado
@@ -132,6 +135,8 @@ class DownAnime():
 		#fecha o arquivo
 		arquivo.close()
 		baixar.close()
+		#variavel para verificação se esta baixando ou não
+		self.baixando = False
 		
 		return True
 
