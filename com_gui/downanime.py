@@ -11,7 +11,7 @@ class DownAnime():
 		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
 		self.nome_ep = self.link_ep = ""
-		self.baixando = False
+		self.baixando = self.finalizar = False
 
 	#faz a requisição do site
 	def abrir_site(self, link="https://animesbz.com/episodios-de-animes/"):
@@ -56,10 +56,10 @@ class DownAnime():
 			
 			#pesquisa o anime na lista de nomes
 			for anime in self.animes_nome:
+				
+				if len(re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"])) > 0:
 
-				if len(re.findall(f"{nome}[\w \-0-9.]*", anime["nome"])) > 0:
-
-					self.resultados.append({"nome": re.findall(f"\w*{nome}[\w \-0-9.]*", anime["nome"]), "index":anime["index"]})
+					self.resultados.append({"nome": re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"]), "index":anime["index"]})
 			
 	def mostra_animes(self):
 
@@ -131,7 +131,11 @@ class DownAnime():
 			arquivo.write(chunk)
 			#soma no total a quantidade ja baixada
 			self.total += 1048576
-
+			
+			if self.finalizar:
+				
+				break
+			
 		#fecha o arquivo
 		arquivo.close()
 		baixar.close()

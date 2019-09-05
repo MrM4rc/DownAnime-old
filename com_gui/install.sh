@@ -16,7 +16,7 @@ else
 
     else
     sudo apt install python3-pip
-    pip install pyside2 requests robobrowser
+    pip3 install pyside2 requests robobrowser
     fi
     
      mkdir /bin/DownAnime

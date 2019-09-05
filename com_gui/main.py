@@ -1,14 +1,17 @@
 import sys
-from PySide2.QtWidgets import QMainWindow, QApplication, QLabel, QProgressBar
+from PySide2.QtWidgets import QMainWindow, QApplication, QLabel, QProgressBar, QMessageBox
 from PySide2.QtGui import QIcon
 from PySide2.QtCore import QFile, Slot, QTimer, QThread, SIGNAL
 from inter_downanime import Ui_MainWindow
 from downanime import DownAnime
 import _thread
 from threading import Thread, Event
+from platform import system
 
 #instancia do DownAnime
 down = DownAnime()
+
+sistema = system()
 
 class Label(QLabel):
 
@@ -58,7 +61,14 @@ class Janela_Principal(QMainWindow):
 		
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
-		self.icon = QIcon("./downanime.ico")
+		#verifica qual o sistema e adiciona icone a jenala
+		if sistema == "Linux":
+			
+			self.icon = QIcon("/bin/DownAnime/downanime.ico")
+			
+		elif sistema == "Windows":
+			
+			self.icon = "downanime.ico"
 		#Adiciona icone a janela quando compilado com pyinstaller
 		#self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
 		self.setWindowIcon(self.icon)
@@ -69,7 +79,13 @@ class Janela_Principal(QMainWindow):
 		self.link_clicado = None
 		#conecta o botão de baixar a função baixar
 		self.ui.baixar_btn.clicked.connect(self.baixar)
+		#variavel para verificar se o download esta ativo ou não
 		self.download_on = False
+		#cria uma caixa de dialogo para mostra que o download ja iniciou
+		self.msg_download = QMessageBox()
+		self.msg_download.setStyleSheet("""
+			background-color: blue;
+			""")
 
 	def baixando(self):
 		
@@ -85,9 +101,11 @@ class Janela_Principal(QMainWindow):
 
 		else:
 			#altera o valo da barra pra 100 quando o download ja foi feito
-			self.ui.progressBar.setValue(100)
+			self.ui.progressBar.setValue(0)
 			#para um objeto QTimer que fica chamando essa função a cada 30s
 			self.time_progress_bar.stop()
+			self.msg_download.setText("Download finalizado.")
+			self.msg_download.exec()
 			#espera finalizar a thread de download
 			self.t.join()
 
@@ -183,12 +201,16 @@ class Janela_Principal(QMainWindow):
 			self.nome = nome
 			
 		else:
-
+			
+			self.link_clicado.marcar = True
 			self.link_clicado.setStyleSheet("""
 				background-color: #606060;
 				color: white;
 				""")
 			self.link_clicado = obj
+			self.link_clicado.marcar = False
+			self.link = link
+			self.nome = nome
 
 
 	def baixar(self):
@@ -218,6 +240,20 @@ class Janela_Principal(QMainWindow):
 			self.time_progress_bar.timeout.connect(self.baixando)
 			#inicia a contagem
 			self.time_progress_bar.start(30000)
+			self.msg_download.setText("Download iniciado....")
+			self.msg_download.exec()
+			
+		else:
+			
+			self.msg_download.setText("Espere o outro download terminar!!")
+			self.msg_download.exec()
+			
+	def closeEvent(self, *args):
+		
+		global down
+		
+		down.finalizar = True
+		
 
 if __name__ == "__main__":
 
