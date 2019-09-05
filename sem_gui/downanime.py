@@ -56,9 +56,9 @@ class DownAnime():
 			#pesquisa o anime na lista de nomes
 			for anime in self.animes_nome:
 
-				if len(re.findall(f"{nome}[\w \-0-9.]*", anime["nome"])) > 0:
+				if len(re.findall(f"{nome}[\w\-\=\+\.\:\* 0-9A-z]*", anime["nome"])) > 0:
 
-					self.resultados.append({"nome": re.findall(f"\w*{nome}[\w \-0-9.]*", anime["nome"]), "index":anime["index"]})
+					self.resultados.append({"nome": re.findall(f"{nome}[\w\-\=\+\.\:\* 0-9A-z]*", anime["nome"]), "index":anime["index"]})
 			
 	def mostra_animes(self):
 
@@ -75,30 +75,13 @@ class DownAnime():
 			#abre a pagina dos ep
 			self.browser.open(self.animes[self.escolha_anime].a["href"], method="get")
 
-			#pega o nome do anime escolhido
-			self.nome_anime = self.animes[self.escolha_anime].text.split(" ")
-
-			nome = ""
-			#modifica o nome do anime para pega os eps
-			for chave in self.nome_anime:
-
-				if chave != "Dublado":
-
-					nome += chave + " "
+			busca = self.browser.find_all("ul")
 			
-			self.nome_anime = nome	
-
-
-			#procura todos os campos de listas
-			anime_episodios = self.browser.find_all("li")
-			#lista que vai guarda os ep
 			self.anime_episodios = []
-			#procura os episodios do anime
-			for ep in anime_episodios:
+			
+			for li in busca[3]:
 				
-				if re.findall(f"^{self.nome_anime}\w*-?\w*", ep.text):
-
-					self.anime_episodios.append(ep)
+				self.anime_episodios.append(li)
 
 	def mostra_episodios(self):
 		#mosta os episodios

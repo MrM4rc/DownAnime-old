@@ -75,31 +75,14 @@ class DownAnime():
 
 			#abre a pagina dos ep
 			self.browser.open(self.animes[self.escolha_anime].a["href"], method="get")
-
-			#pega o nome do anime escolhido
-			self.nome_anime = self.animes[self.escolha_anime].text.split(" ")
-
-			nome = ""
-			#modifica o nome do anime para pega os eps
-			for chave in self.nome_anime:
-
-				if chave != "Dublado":
-
-					nome += chave + " "
-			
-			self.nome_anime = nome	
-
-
-			#procura todos os campos de listas
-			anime_episodios = self.browser.find_all("li")
-			#lista que vai guarda os ep
+			#busca todas as listas não ordenadas
+			busca = self.browser.find_all("ul")
+			#lista que vai guarda os episodios
 			self.anime_episodios = []
-			#procura os episodios do anime
-			for ep in anime_episodios:
-				
-				if re.findall(f"^{self.nome_anime}\w*-?\w*", ep.text):
-
-					self.anime_episodios.append(ep)
+			#busca todos os li
+			for li in busca[3]:
+				#adiciona o episodio a lista de episodios
+				self.anime_episodios.append(li)
 
 	def mostra_episodios(self):
 		#mosta os episodios
