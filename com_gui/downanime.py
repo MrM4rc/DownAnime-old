@@ -91,6 +91,10 @@ class DownAnime():
 			print(f"{index} -- {ep.text}")
 	
 	def baixar_ep(self, link, nome):
+		
+		for cara_especial in ["!", ":", "\\", "|", "/", "?", "*", "<", ">"]:
+			
+			nome = nome.replace(cara_especial, "DA")
         
 		#variavel para verificação se esta baixando ou não
 		self.baixando = True

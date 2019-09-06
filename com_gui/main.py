@@ -68,7 +68,8 @@ class Janela_Principal(QMainWindow):
 			
 		elif sistema == "Windows":
 			
-			self.icon = "downanime.ico"
+			self.icon = QIcon("downanime.ico")
+			
 		#Adiciona icone a janela quando compilado com pyinstaller
 		#self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
 		self.setWindowIcon(self.icon)
