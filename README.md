@@ -19,7 +19,7 @@ Você pode executar o install.sh com o comando: "sudo ./install.sh", e podera ch
 ## Windows
 
 No Windows você pode usar nosso executavel
-<p><a href="https://drive.google.com/open?id=1IX2tBuoOxh-_Imv3pu4GZhdC2aOyE1xC">link</a></p>
+<p><a href="https://drive.google.com/folderview?id=1535BwQpzLtcjYLicwYRdtKKDhjDL6A2N">link</a></p>
 <br>
 <p><b>Criador: Marcelo Almeida<b></p>
 
