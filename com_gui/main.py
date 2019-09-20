@@ -62,6 +62,7 @@ class Janela_Principal(QMainWindow):
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
 		#verifica qual o sistema e adiciona icone a jenala
+		
 		if sistema == "Linux":
 			
 			self.icon = QIcon("/bin/DownAnime/downanime.ico")
@@ -69,7 +70,7 @@ class Janela_Principal(QMainWindow):
 		elif sistema == "Windows":
 			
 			self.icon = QIcon("downanime.ico")
-			
+		
 		#Adiciona icone a janela quando compilado com pyinstaller
 		#self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
 		self.setWindowIcon(self.icon)

@@ -31,35 +31,17 @@ class DownAnime():
 			self.animes_nome = []
 			#guarda o resultado da pesquisa do anime
 			self.resultados = []
-			#tranforma o nome do anime em um padrão pro site
-			novo_nome = []
+
 			for index, anime in enumerate(self.animes):
 				#salvando os nomes dos animes
 				self.animes_nome.append({"nome":anime.text, "index": index})
 				
-			#modificar o nome para pesquisar o anime
-			for pos, cara in enumerate(nome):
-
-				if pos == 0:
-					novo_nome.append(cara.upper())
-
-				else:
-
-					novo_nome.append(cara)
-			
-			nome = ""
-			for cara in novo_nome:
-				
-				nome += cara
-			
-			self.nome_anime = nome
-			
 			#pesquisa o anime na lista de nomes
 			for anime in self.animes_nome:
 				
-				if len(re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"])) > 0:
+				if len(re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], flags=re.I)) > 0:
 
-					self.resultados.append({"nome": re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"]), "index":anime["index"]})
+					self.resultados.append({"nome": re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], re.I), "index":anime["index"]})
 			
 	def mostra_animes(self):
 
