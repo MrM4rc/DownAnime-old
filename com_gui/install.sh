@@ -19,10 +19,9 @@ else
     pip3 install pyside2 requests robobrowser
     fi
     
-     mkdir /bin/DownAnime
-    cp ./main.py ./downanime.py ./inter_downanime.py ./downanime.ico /bin/DownAnime/
+     mkdir ~/.local/share/DownAnime
+    cp ./main.py ./downanime.py ./inter_downanime.py ./downanime.ico ~/.local/share/DownAnime/
     chmod +x ./downanime
     cp ./downanime /bin/
 fi
 
-   

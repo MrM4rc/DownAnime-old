@@ -94,12 +94,14 @@ class DownAnime():
 		arquivo = open(f"{nome}.mp4", "ab")
 		#faz a requisão do video
 		baixar = requests.get(video[0].source["src"], stream=True)
+		#define um valor de transmissão
+		transmissao = 1024
 		#faz a transmissão dos por partes
-		for chunk in baixar.iter_content(chunk_size=1048576):
+		for chunk in baixar.iter_content(chunk_size=transmissao):
 			#escreve no arquivo os bytes recebidos
 			arquivo.write(chunk)
 			#soma no total a quantidade ja baixada
-			self.total += 1048576
+			self.total += transmissao
 			
 			if self.finalizar:
 				
