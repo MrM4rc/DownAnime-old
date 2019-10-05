@@ -39,7 +39,7 @@ class DownAnime():
 			#pesquisa o anime na lista de nomes
 			for anime in self.animes_nome:
 				
-				if len(re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], flags=re.I)) > 0:
+				if len(re.findall(f".*{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], flags=re.I)) > 0:
 
 					self.resultados.append({"nome": re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], re.I), "index":anime["index"]})
 			
@@ -86,10 +86,13 @@ class DownAnime():
 		self.total = 0
 		#abre o site do video
 		baixar.open(link, method="get")
+		print(baixar)
 		#pega o elemento com tag de video
 		video = baixar.find_all("video")
+		print(video[0].source["src"])
 		#pega os headers da pagina do video para saber o total ja baixado
 		self.header_total_arquivo = requests.head(video[0].source["src"])
+		print(self.header_total_arquivo)
 		#abre o arquivo para escrita
 		arquivo = open(f"{nome}.mp4", "ab")
 		#faz a requisão do video
