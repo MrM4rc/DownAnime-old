@@ -53,10 +53,9 @@ class DownAnime():
 			#parser para busca os eps
 			pesquisa = bs(self.conexao.text, "html.parser")
 			#pega as divs que contem os episodios
-			numero_episodios = pesquisa.find("div", "epsBox")
-			#pega o numero de episodios
-			numero = numero_episodios.a["title"]
-			numero = int(re.findall("[\d]+", numero)[0])
+			numero_episodios = pesquisa.find("ul", "boxAnimeSobre")
+			numero_episodios = re.findall("[\d]+", numero_episodios.find("div").find("li").text)[0]
+			numero = int(numero_episodios)
 			#constroi uma lista com todos os episodios disponiveis
 			self.anime_episodios = [f"episodio-{episodio}" for episodio in range(1, numero+1)]
 			
@@ -137,8 +136,9 @@ class DownAnime():
 				os.system("cls")
 
 down = DownAnime()
-down.pesquisar("black")
-down.escolha_anime = 6
+down.pesquisar("hunter")
+down.mostra_animes()
+down.escolha_anime = int(input("escolha o index: "))
 down.episodios()
 down.mostra_episodios()
 
