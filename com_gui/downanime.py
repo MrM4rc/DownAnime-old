@@ -12,8 +12,6 @@ class DownAnime():
 		self.finalizar = False
 		self.completo = True
 		self.link = "https://www.superanimes.org/busca?parametro="
-		self.resultados = []
-		self.anime_episodios = []
 		self.sistema = platform.system()
 		self.opcoes = Options()
 		self.opcoes.add_argument("--headless")
@@ -24,6 +22,8 @@ class DownAnime():
 		#verifica qual o site pq a ideia e pesquisar em varios sites caso não ache o anime neste
 		if self.link == "https://www.superanimes.org/busca?parametro=":
 			
+			#guarda os resultados
+			self.resultados = []
 			#tranforma os espaços em (+) para realizar a pesquisa
 			nome = nome.replace(" ", "+")
 			#pesquisa os animes com nome parecido

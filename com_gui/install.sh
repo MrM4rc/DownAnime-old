@@ -7,7 +7,12 @@ diretorio_instalacao="/bin/downanime"
 
 if [ -f "$diretorio_instalacao" ]
 then
-echo "tudo instalado"
+	rm /bin/downanime
+	rm -r ~/.local/share/DownAnime/
+	mkdir ~/.local/share/DownAnime
+	cp ./main.py ./downanime.py ./inter_downanime.py ./downanime.ico ~/.local/share/DownAnime
+	chmod +x downanime
+	cp ./downanime /bin/	
 else
 
     if [ $tamanho -gt 0 ]
