@@ -1,12 +1,10 @@
 from downanime import DownAnime
 
 down = DownAnime()
-#abre o site para baixar os animes
-down.abrir_site()
 #pega o nome do anime para pesquisar
 pesquisar = str(input("digite o nome do anime: "))
 #chama a função de pesquisa
-down.pesquisa(pesquisar)
+down.pesquisar(pesquisar)
 #mostra os episodios encontrados
 down.mostra_animes()
 #escolha do anime
@@ -15,9 +13,20 @@ down.escolha_anime = int(input("escolha o index do anime: "))
 down.episodios()
 #mostra os episodios encontrados
 down.mostra_episodios()
-#escolha do index do ep
-ep_index = int(input("escolha o index do ep: "))
+#variavel que guarda os episodios escolhidos pelo usuario
+episodios = []
 
+while True:
+
+	ep = str(input("digite o index do ep(Q para sair.)"))
+
+	if ep.isnumeric():
+
+		episodios.append(down.anime_episodios[int(ep)])
+
+	else:
+
+		break
 #chama a função para baixar o ep selecionado
-down.baixar_ep(down.anime_episodios[ep_index].a["href"], down.anime_episodios[ep_index].text)
+down.baixar_ep(episodios)
 

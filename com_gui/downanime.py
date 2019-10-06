@@ -1,47 +1,38 @@
-from robobrowser import RoboBrowser
-import re, requests
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+import re, requests, urllib3
 from bs4 import BeautifulSoup as bs
-from threading import Thread
+import time, platform, threading, os
 
 class DownAnime():
 
 	def __init__(self):
 
-		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
-		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
-		self.nome_ep = self.link_ep = ""
-		self.baixando = self.finalizar = False
-
-	#faz a requisição do site
-	def abrir_site(self, link="https://animesbz.com/episodios-de-animes/"):
-		
-		self.link = link
-		self.browser.open(self.link, method="get")
+		self.finalizar = False
+		self.completo = True
+		self.link = "https://www.superanimes.org/busca?parametro="
+		self.resultados = []
+		self.anime_episodios = []
+		self.sistema = platform.system()
+		self.opcoes = Options()
+		self.opcoes.add_argument("--headless")
 
 	#função para fazer pesquisa do anime
-	def pesquisa(self, nome):
+	def pesquisar(self, nome):
 		
 		#verifica qual o site pq a ideia e pesquisar em varios sites caso não ache o anime neste
-		if self.link == "https://animesbz.com/episodios-de-animes/":
-
-			#procura os animes disponiveis
-			self.animes = self.browser.find_all("em")
-			#guarda os nomes dos animes
-			self.animes_nome = []
-			#guarda o resultado da pesquisa do anime
-			self.resultados = []
-
-			for index, anime in enumerate(self.animes):
-				#salvando os nomes dos animes
-				self.animes_nome.append({"nome":anime.text, "index": index})
-				
-			#pesquisa o anime na lista de nomes
-			for anime in self.animes_nome:
-				
-				if len(re.findall(f".*{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], flags=re.I)) > 0:
-
-					self.resultados.append({"nome": re.findall(f"{nome}[\w /\\\+\.\-\*\: 0-9 A-z]*", anime["nome"], re.I), "index":anime["index"]})
+		if self.link == "https://www.superanimes.org/busca?parametro=":
+			
+			#tranforma os espaços em (+) para realizar a pesquisa
+			nome = nome.replace(" ", "+")
+			#pesquisa os animes com nome parecido
+			self.conexao = requests.get(f"{self.link}{nome}")
+			pesquisa = bs(self.conexao.text, "html.parser")
+			#percorre pelos resultados
+			for index, anime in enumerate(pesquisa.find_all("article")):
+				#armazena os resultados
+				self.resultados.append({"index": index, "nome": anime})
 			
 	def mostra_animes(self):
 
@@ -49,72 +40,113 @@ class DownAnime():
 			#mostra os resultados
 			for anime in self.resultados:
 
-				print(f"{anime['index']}--{anime['nome'][0]}")
+				print(f"{anime['index']}--{anime['nome'].h1.text}")
 
 	#pega todos os episódios disponiveis
 	def episodios(self):
-		if self.link == "https://animesbz.com/episodios-de-animes/":
+		if self.link == "https://www.superanimes.org/busca?parametro=":
 
 			#abre a pagina dos ep
-			self.browser.open(self.animes[self.escolha_anime].a["href"], method="get")
-			#busca todas as listas não ordenadas
-			busca = self.browser.find_all("ul")
-			#lista que vai guarda os episodios
-			self.anime_episodios = []
-			#busca todos os li
-			for li in busca[3]:
-				#adiciona o episodio a lista de episodios
-				self.anime_episodios.append(li)
+			self.conexao = requests.get(self.resultados[self.escolha_anime]["nome"].h1.a["href"])
+			#guarda o nome do anime
+			self.nome_anime = self.resultados[self.escolha_anime]["nome"].h1.text
+			#guarda o link do anime
+			self.link_anime = self.conexao.url
+			#parser para busca os eps
+			pesquisa = bs(self.conexao.text, "html.parser")
+			#pega as divs que contem os episodios
+			numero_episodios = pesquisa.find("ul", "boxAnimeSobre")
+			numero_episodios = re.findall("[\d]+", numero_episodios.find("div").find("li").text)[0]
+			numero = int(numero_episodios)
+			#constroi uma lista com todos os episodios disponiveis
+			self.anime_episodios = [f"episodio-{episodio}" for episodio in range(1, numero+1)]
+			
 
 	def mostra_episodios(self):
 		#mosta os episodios
 		for index, ep in enumerate(self.anime_episodios):
 				
-			print(f"{index} -- {ep.text}")
+			print(f"{index} -- Episodio-{ep}")
+
 	
-	def baixar_ep(self, link, nome):
-		
-		for cara_especial in ["!", ":", "\\", "|", "/", "?", "*", "<", ">"]:
-			
-			nome = nome.replace(cara_especial, "DA")
-        
-		#variavel para verificação se esta baixando ou não
-		self.baixando = True
-		#intancia do robobrowser para pega o link do video
-		baixar = RoboBrowser(history=True, parser="html.parser")
-		#variavel para controla o total ja baixado
-		self.total = 0
-		#abre o site do video
-		baixar.open(link, method="get")
-		print(baixar)
-		#pega o elemento com tag de video
-		video = baixar.find_all("video")
-		print(video[0].source["src"])
-		#pega os headers da pagina do video para saber o total ja baixado
-		self.header_total_arquivo = requests.head(video[0].source["src"])
-		print(self.header_total_arquivo)
-		#abre o arquivo para escrita
-		arquivo = open(f"{nome}.mp4", "ab")
-		#faz a requisão do video
-		baixar = requests.get(video[0].source["src"], stream=True)
-		#define um valor de transmissão
-		transmissao = 1024
-		#faz a transmissão dos por partes
-		for chunk in baixar.iter_content(chunk_size=transmissao):
-			#escreve no arquivo os bytes recebidos
-			arquivo.write(chunk)
-			#soma no total a quantidade ja baixada
-			self.total += transmissao
-			
-			if self.finalizar:
+	def baixar_ep(self, eps=[]):
+		try:
+
+			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
+			self.completo = False
+
+			for ep in eps:
+
+				if self.finalizar:
+
+					break
+
+				self.total = 0
+
+				self.firefox.get(f"{self.link_anime}/{ep}")
+				#parser para encontra o elemento video
+				pagina = bs(self.firefox.page_source, "html.parser")
+
+				link = pagina.find_all("iframe")[0]["src"]
+				self.firefox.get(link)
+				pagina = bs(self.firefox.page_source, "html.parser")
+				link = pagina.find("video").source["src"]
 				
-				break
+				#requisita o video
+				video = requests.get(link, stream=True)
+
+				self.header_total_arquivo = video.headers
+				self.total = 0
+				#escreve cada fatia em um arquivo
+				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
+
+					for chunk in video.iter_content(chunk_size=1024):
+						
+						if self.finalizar:
+
+							break
+
+						arquivo.write(chunk)
+						self.total += 1024
+				
+			self.completo = True
+			self.firefox.close()
 			
-		#fecha o arquivo
-		arquivo.close()
-		baixar.close()
-		#variavel para verificação se esta baixando ou não
-		self.baixando = False
+		except:
+
+			self.completo = True
+			self.firefox.close()
+			print("programa parado")
+
+	
+	def baixando(self):
 		
-		return True
+		self.sistema = platform.system()
+
+		if self.sistema == "Linux":
+
+			os.system("clear")
+
+		elif self.sistema == "Windows":
+
+			os.system("cls")
+
+		while not self.completo:
+			
+			print("baixando", end="", flush=True)
+
+			for c in [".",".",".","."]:
+
+				print(c, end="", flush=True)
+				time.sleep(1)
+			print()
+
+			if self.sistema == "Linux":
+
+				os.system("clear")
+
+			elif self.sistema == "Windows":
+
+				os.system("cls")
+
 

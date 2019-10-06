@@ -1,4 +1,5 @@
-from robobrowser import RoboBrowser
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 import re, requests, urllib3
 from bs4 import BeautifulSoup as bs
 import time, platform, threading, os
@@ -8,13 +9,14 @@ class DownAnime():
 	def __init__(self):
 
 		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
-		self.browser = RoboBrowser(history=True, parser="html.parser")
 		self.escolha_anime =  None
 		self.completo = False
 		self.link = "https://www.superanimes.org/busca?parametro="
 		self.resultados = []
 		self.anime_episodios = []
 		self.sistema = platform.system()
+		self.opcoes = Options()
+		self.opcoes.add_argument("--headless")
 
 	#função para fazer pesquisa do anime
 	def pesquisar(self, nome):
@@ -70,22 +72,25 @@ class DownAnime():
 	def baixar_ep(self, eps=[]):
 		try:
 
-			for ep in eps:
+			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
 
-				#requisita a pagina do episodio
-				conexao = requests.get(f"{self.link_anime}/{ep}/")
-				#pega o id do episodio
-				id_anime = conexao.url.split("/")
-				id_anime = id_anime[len(id_anime)-1]
-				#requisita a pagina que contem o elemento video para baixar o ep
-				conexao = requests.get("https://www.superanimes.org/player.php?file=ODIwNjQ5Mw==&type=2&thumb=https://4icdn.com/img/video/{id_anime}-medium.jpg")
+			for ep in eps:
+				
+				self.firefox.get(f"{self.link_anime}/{ep}")
 				#parser para encontra o elemento video
-				texto = bs(conexao.text, "html.parser")
-				#pega o link do elemento video
-				link = texto.find_all("video")
-				link = link[0].source["src"]
+				pagina = bs(self.firefox.page_source, "html.parser")
+
+				link = pagina.find_all("iframe")[0]["src"]
+				self.firefox.get(link)
+				pagina = bs(self.firefox.page_source, "html.parser")
+				link = pagina.find("video").source["src"]
+				
 				#requisita o video
 				video = requests.get(link, stream=True)
+
+				self.header_total_arquivo = video.headers
+				print(headers)
+				"""
 				#escreve cada fatia em um arquivo
 				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
 
@@ -93,15 +98,13 @@ class DownAnime():
 
 						arquivo.write(chunk)
 				
-				
-				if self.sistema == "Linux":
-
-					os.system(f"mv {self.nome_anime}-{ep}.mp4 ~/Downloads/")
-				
-				
-		except KeyboardInterrupt:
+				"""
+			self.firefox.close()
+			
+		except:
 
 			self.completo = True
+			self.firefox.close()
 			print("programa parado")
 
 	
@@ -135,26 +138,4 @@ class DownAnime():
 
 				os.system("cls")
 
-down = DownAnime()
-down.pesquisar("hunter")
-down.mostra_animes()
-down.escolha_anime = int(input("escolha o index: "))
-down.episodios()
-down.mostra_episodios()
-
-eps = []
-
-while True:
-
-	ep = str(input("digite o index do ep(qualquer letra para cancelar): "))
-
-	if ep.isnumeric():
-
-		eps.append(down.anime_episodios[int(ep)])
-
-	else:
-
-		break
-
-down.baixar_ep(eps)
 

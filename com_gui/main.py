@@ -24,6 +24,7 @@ class Label(QLabel):
 				background-color: #606060;
 				""")
 		self.marcar = True
+		self.clicado = False
 
 	def mostra_anime_ep(self, obj):
 		"""
@@ -43,13 +44,23 @@ class Label(QLabel):
 		
 		global janela
 		
-		self.setStyleSheet("""
-				background-color: rgb(255, 255, 255);
-				color:black;
-				""")
-        #verifica se algum label foi clicado, possibilitando o download
-		janela.download_on = True
-		janela.baixar_ep(self.link, self.text(), self)
+		if not self.clicado:
+
+			self.setStyleSheet("""
+					background-color: rgb(255, 255, 255);
+					color:black;
+					""")
+			janela.baixar_ep(self.link, "adicionar")
+			self.clicado = True
+
+		else:
+
+			self.setStyleSheet("""
+					background-color: #606060;
+					color: white;
+					""")
+			self.clicado = False
+			janela.baixar_ep(self.link, "remover")
 
 
 class Janela_Principal(QMainWindow):
@@ -93,9 +104,9 @@ class Janela_Principal(QMainWindow):
 		
 		global down
 
-		if down.total < int(down.header_total_arquivo.headers["content-length"]):
+		if down.total < int(down.header_total_arquivo["content-length"]):
 			#calculo de porcentagem para pega progresso do download
-			porcentagem = down.total/int(down.header_total_arquivo.headers["content-length"])
+			porcentagem = down.total/int(down.header_total_arquivo["content-length"])
 			#multiplica o valor obtido no calculo de porcentagem para pega um valor mais redondo
 			porcentagem *= 100
 			#altera o valor da barra de progresso
@@ -116,10 +127,9 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#abre o site para baixar animes
-		down.abrir_site()
 		#pesquisa os animes disponiveis 
-		down.pesquisa(self.ui.barra_pesquisa.toPlainText())
+		down.pesquisar(self.ui.barra_pesquisa.toPlainText().replace("\n","+"))
+
 		#limpa a area onde ficara os animes/episódios
 		for i in reversed(range(self.ui.area_animes_r.count())):
 
@@ -129,7 +139,7 @@ class Janela_Principal(QMainWindow):
 		for resu in down.resultados:
 			
 			#cria label com nomes do anime
-			label = Label(text=resu["nome"][0])
+			label = Label(text=resu["nome"].text)
 			#pega o index para depois passa qual anime foi escolhido da lista
 			label.escolha = resu["index"]
 			#adiciona a função mostra do label ao mousepressevent
@@ -141,6 +151,8 @@ class Janela_Principal(QMainWindow):
 	def episodios(self):
 		
 		global down
+
+		self.episodios = []
 
 		
 		#limpa a area onde fica os animes/episódios
@@ -154,66 +166,27 @@ class Janela_Principal(QMainWindow):
 		for ep in down.anime_episodios:
 			
 			#constroi label com nome dos episodios
-			label = Label(text=ep.text)
+			label = Label(text=ep)
 			#pega o link do episodio
-			label.link = ep.a["href"]
+			label.link = ep
 			#atribui uma função sua ao mousepressevent
 			label.mousePressEvent = label.baixar
 			#adiciona o label a area de animes
 			self.ui.area_animes_r.addWidget(label)
 
-	def baixar_ep(self, link, nome, obj):
+	def baixar_ep(self, link, acao):
 
 		global down
 		
-		
-		#verifica se a variavel ja contem algum label clicado
-		if self.link_clicado == None:
-			
-			#atribui o label a essa variavel
-			self.link_clicado = obj
-			#variavel que indica se é pra marca o episodio para baixar ou não
-			self.link_clicado.marcar = False
-			
-			#pega o link do video para baixar
-			self.link = link
-			#pega o nome do anime
-			self.nome = nome
-			
-			
-		#troca a cor do label clicado anteriomente
-		elif self.link_clicado == obj and not self.link_clicado.marcar:
-			
-			self.link_clicado.marcar = True
-			self.link_clicado.setStyleSheet("""
-				background-color: #606060;
-				color: white;
-				""")
-			self.link = self.nome = ""
-			
-		elif self.link_clicado == obj and self.link_clicado.marcar:
-			
-			self.link_clicado.marcar = False
-			self.link_clicado.setStyleSheet("""
-				background-color: rgb(255, 255, 255);
-				color: black;
-				""")
-			
-			self.link = link
-			self.nome = nome
-			
-		else:
-			
-			self.link_clicado.marcar = True
-			self.link_clicado.setStyleSheet("""
-				background-color: #606060;
-				color: white;
-				""")
-			self.link_clicado = obj
-			self.link_clicado.marcar = False
-			self.link = link
-			self.nome = nome
 
+		if acao == "adicionar":
+
+			self.episodios.append(link)
+
+		else:
+
+			self.episodios.remove(link)
+			
 
 	def baixar(self):
 		"""		Esta função inicia o download do episodio em uma nova thread para que não atrapalhe o fluxo normal do programa.
@@ -221,21 +194,12 @@ class Janela_Principal(QMainWindow):
 
 		global down
 		
-		#verifica se um label foi clicado e se o down ja esta baixando alguma coisa.
-		if self.download_on and not down.baixando:
-			
-			self.download_on = False
-			
+		if down.completo:
+
 			#inicia uma thread para baixar o anime
-			self.t = Thread(target=down.baixar_ep, args=(self.link, self.nome))
+			self.t = Thread(target=down.baixar_ep, args=(self.episodios, ))
 			self.t.start()
 			
-			#traz a cor da label do episódio ao normal
-			self.link_clicado.setStyleSheet("""
-					background-color: #606060;
-					color: white;
-					""")
-			self.link_clicado.marcar = True
 			#instancia do objeto QTimer para agenda um evento a cada 500 milissegundos
 			self.time_progress_bar = QTimer(self)
 			#conecta esse QTimer a função baixando da classe
