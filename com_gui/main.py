@@ -7,6 +7,7 @@ from downanime import DownAnime
 import _thread
 from threading import Thread, Event
 from platform import system
+from time import sleep
 
 #instancia do DownAnime
 down = DownAnime()
@@ -16,7 +17,7 @@ sistema = system()
 class Label(QLabel):
 
 	def __init__(self, **kwargs):
-		
+
 		super(Label, self).__init__(**kwargs)
 
 		self.setStyleSheet("""
@@ -32,25 +33,25 @@ class Label(QLabel):
 		"""
 		global down
 		global janela
-		
+
 		down.escolha_anime = self.escolha
 		down.episodios()
-		janela.episodios()
+		janela.mostraEpisodios()
 
 	def baixar(self, obj):
 		"""
 		chama a função para baixar os episódios
 		"""
-		
+
 		global janela
-		
+
 		if not self.clicado:
 
 			self.setStyleSheet("""
 					background-color: rgb(255, 255, 255);
 					color:black;
 					""")
-			janela.baixar_ep(self.link, "adicionar")
+			janela.baixarEp(self.link, "adicionar", self)
 			self.clicado = True
 
 		else:
@@ -60,7 +61,7 @@ class Label(QLabel):
 					color: white;
 					""")
 			self.clicado = False
-			janela.baixar_ep(self.link, "remover")
+			janela.baixarEp(self.link, "remover", self)
 
 
 class Janela_Principal(QMainWindow):
@@ -69,19 +70,19 @@ class Janela_Principal(QMainWindow):
 		super(Janela_Principal, self).__init__()
 
 		global down
-		
+
 		self.ui = Ui_MainWindow()
 		self.ui.setupUi(self)
 		#verifica qual o sistema e adiciona icone a jenala
-		
+
 		if sistema == "Linux":
-			
-			self.icon = QIcon("/bin/DownAnime/downanime.ico")
-			
-		elif sistema == "Windows":
-			
+
 			self.icon = QIcon("downanime.ico")
-		
+
+		elif sistema == "Windows":
+
+			self.icon = QIcon("downanime.ico")
+
 		#Adiciona icone a janela quando compilado com pyinstaller
 		#self.icon = QIcon(sys._MEIPASS+"/downanime.ico")
 		self.setWindowIcon(self.icon)
@@ -99,9 +100,11 @@ class Janela_Principal(QMainWindow):
 		self.msg_download.setStyleSheet("""
 			background-color: blue;
 			""")
+		#guarda uma referencia a todos os objetos que foram clicados.
+		self.objetos = []
 
 	def baixando(self):
-		
+
 		global down
 
 		if down.total < int(down.header_total_arquivo["content-length"]):
@@ -126,18 +129,18 @@ class Janela_Principal(QMainWindow):
 	def pesquisar(self, pos):
 
 		global down
-		
-		#pesquisa os animes disponiveis 
+
+		#pesquisa os animes disponiveis
 		down.pesquisar(self.ui.barra_pesquisa.toPlainText().replace("\n","+"))
 
 		#limpa a area onde ficara os animes/episódios
 		for i in reversed(range(self.ui.area_animes_r.count())):
 
 			self.ui.area_animes_r.itemAt(i).widget().deleteLater()
-		
+
 		#coloca os resultados na tela
 		for resu in down.resultados:
-			
+
 			#cria label com nomes do anime
 			label = Label(text=resu["nome"].text)
 			#pega o index para depois passa qual anime foi escolhido da lista
@@ -148,23 +151,21 @@ class Janela_Principal(QMainWindow):
 			self.ui.area_animes_r.addWidget(label)
 
 
-	def episodios(self):
-		
+	def mostraEpisodios(self):
+
 		global down
 
 		self.episodios = []
 
-		
+
 		#limpa a area onde fica os animes/episódios
 		for i in reversed(range(self.ui.area_animes_r.count())):
-			
+
 			self.ui.area_animes_r.itemAt(i).widget().deleteLater()
-			#evita bugs na hora refenciar esse atributo
-			self.link_clicado = None
-		
+
 		#constroi a lista de episódios
 		for ep in down.anime_episodios:
-			
+
 			#constroi label com nome dos episodios
 			label = Label(text=ep)
 			#pega o link do episodio
@@ -174,32 +175,33 @@ class Janela_Principal(QMainWindow):
 			#adiciona o label a area de animes
 			self.ui.area_animes_r.addWidget(label)
 
-	def baixar_ep(self, link, acao):
+	def baixarEp(self, link, acao, objeto):
 
 		global down
-		
+
 
 		if acao == "adicionar":
 
 			self.episodios.append(link)
+			self.objetos.append(objeto)
 
 		else:
 
 			self.episodios.remove(link)
-			
+			self.objetos.remove(objeto)
 
 	def baixar(self):
 		"""		Esta função inicia o download do episodio em uma nova thread para que não atrapalhe o fluxo normal do programa.
 		"""
 
 		global down
-		
+
 		if down.completo:
 
 			#inicia uma thread para baixar o anime
 			self.t = Thread(target=down.baixar_ep, args=(self.episodios, ))
 			self.t.start()
-			
+
 			#instancia do objeto QTimer para agenda um evento a cada 500 milissegundos
 			self.time_progress_bar = QTimer(self)
 			#conecta esse QTimer a função baixando da classe
@@ -208,18 +210,28 @@ class Janela_Principal(QMainWindow):
 			self.time_progress_bar.start(30000)
 			self.msg_download.setText("Download iniciado....")
 			self.msg_download.exec()
-			
+
+			for objeto in self.objetos:
+
+				objeto.setStyleSheet("""
+					background-color: #606060;
+					color: white;
+				""")
+
+			self.episodios = []
+			self.objetos = []
+
 		else:
-			
+
 			self.msg_download.setText("Espere o outro download terminar!!")
 			self.msg_download.exec()
-			
+
 	def closeEvent(self, *args):
-		
+
 		global down
-		
+
 		down.finalizar = True
-		
+
 
 if __name__ == "__main__":
 
@@ -227,4 +239,3 @@ if __name__ == "__main__":
 	janela = Janela_Principal()
 	janela.show()
 	sys.exit(app.exec_())
-

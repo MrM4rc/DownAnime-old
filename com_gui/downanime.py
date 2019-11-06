@@ -100,14 +100,14 @@ class DownAnime():
 				#escreve cada fatia em um arquivo
 				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
 
-					for chunk in video.iter_content(chunk_size=1024):
+					for chunk in video.iter_content(chunk_size=5120):
 						
 						if self.finalizar:
 
 							break
 
 						arquivo.write(chunk)
-						self.total += 1024
+						self.total += 5120
 				
 			self.completo = True
 			self.firefox.close()
