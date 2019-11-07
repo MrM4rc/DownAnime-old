@@ -21,5 +21,5 @@ Depois é so escolher a versão desejada e executar o comando: <b>python main.py
 Você pode executar o install.sh com o comando: "sudo ./install.sh", e podera chama o downanime de qualquer lugar usando o comando: "downanime" no terminal
 
 <br>
-<p><b>Criador: Marcelo Almeida<b></p>
+<p><b>Criador: Marcelo Almeida :3<b></p>
 
