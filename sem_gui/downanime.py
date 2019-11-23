@@ -77,31 +77,27 @@ class DownAnime():
 			for ep in eps:
 				
 				self.firefox.get(f"{self.link_anime}/{ep}")
-				#parser para encontra o elemento video
-				pagina = bs(self.firefox.page_source, "html.parser")
-
-				link = pagina.find_all("iframe")[0]["src"]
-				self.firefox.get(link)
-				pagina = bs(self.firefox.page_source, "html.parser")
-				link = pagina.find("video").source["src"]
+				self.firefox.switch_to.frame(0)
+				video = self.firefox.find_element_by_tag_name("video")
+				link = video.get_attribute("src")
 				
 				#requisita o video
 				video = requests.get(link, stream=True)
 
-				self.header_total_arquivo = video.headers
-				print(headers)
-				"""
+				self.headers = video.headers
+				self.total = 0
+
 				#escreve cada fatia em um arquivo
 				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
 
 					for chunk in video.iter_content(chunk_size=1024):
 
 						arquivo.write(chunk)
+						self.total += 1024
 				
-				"""
 			self.firefox.close()
 			
-		except:
+		except KeyboardInterrupt:
 
 			self.completo = True
 			self.firefox.close()
