@@ -70,54 +70,42 @@ class DownAnime():
 
 	
 	def baixar_ep(self, eps=[]):
-		try:
 
-			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
-			self.completo = False
+		self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
+		self.completo = False
 
-			for ep in eps:
+		for ep in eps:
 
-				if self.finalizar:
+			if self.finalizar:
 
-					break
+				break
 
-				self.total = 0
+			self.total = 0
 
-				self.firefox.get(f"{self.link_anime}/{ep}")
-				#parser para encontra o elemento video
-				pagina = bs(self.firefox.page_source, "html.parser")
-
-				link = pagina.find_all("iframe")[0]["src"]
-				self.firefox.get(link)
-				pagina = bs(self.firefox.page_source, "html.parser")
-				link = pagina.find("video").source["src"]
-				
-				#requisita o video
-				video = requests.get(link, stream=True)
-
-				self.header_total_arquivo = video.headers
-				self.total = 0
-				#escreve cada fatia em um arquivo
-				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
-
-					for chunk in video.iter_content(chunk_size=5120):
-						
-						if self.finalizar:
-
-							break
-
-						arquivo.write(chunk)
-						self.total += 5120
-				
-			self.completo = True
-			self.firefox.close()
+			self.firefox.get(f"{self.link_anime}/{ep}")
+			self.firefox.switch_to.frame(0)
+			video = self.firefox.find_element_by_tag_name("video")
+			link = video.get_attribute("src")
 			
-		except:
+			#requisita o video
+			video = requests.get(link, stream=True)
 
-			self.completo = True
-			self.firefox.close()
-			print("programa parado")
+			self.header_total_arquivo = video.headers
+			self.total = 0
+			#escreve cada fatia em um arquivo
+			with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
 
+				for chunk in video.iter_content(chunk_size=5120):
+					
+					if self.finalizar:
+
+						break
+
+					arquivo.write(chunk)
+					self.total += 5120
+			
+		self.completo = True
+		self.firefox.close()
 	
 	def baixando(self):
 		
