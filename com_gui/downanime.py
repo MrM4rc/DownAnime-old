@@ -8,10 +8,12 @@ class DownAnime():
 
 	def __init__(self):
 
+		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
 		self.escolha_anime =  None
-		self.finalizar = False
-		self.completo = True
+		self.completo = False
 		self.link = "https://www.superanimes.org/busca?parametro="
+		self.resultados = []
+		self.anime_episodios = []
 		self.sistema = platform.system()
 		self.opcoes = Options()
 		self.opcoes.add_argument("--headless")
@@ -22,8 +24,6 @@ class DownAnime():
 		#verifica qual o site pq a ideia e pesquisar em varios sites caso não ache o anime neste
 		if self.link == "https://www.superanimes.org/busca?parametro=":
 			
-			#guarda os resultados
-			self.resultados = []
 			#tranforma os espaços em (+) para realizar a pesquisa
 			nome = nome.replace(" ", "+")
 			#pesquisa os animes com nome parecido
@@ -70,42 +70,46 @@ class DownAnime():
 
 	
 	def baixar_ep(self, eps=[]):
+		try:
 
-		self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
-		self.completo = False
+			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
 
-		for ep in eps:
+			for ep in eps:
+				#abre a pagina do episodio
+				self.firefox.get(f"{self.link_anime}/{ep}")
+				#busca os elementos que contem os players de video
+				video = self.firefox.find_elements_by_class_name("btVideo")
+				#pega o link do player
+				video = video[1].get_attribute("data-video-url")
+				#requisita a pagina do player
+				self.firefox.get(f"{video}")
+				#busca o elemento video
+				video = self.firefox.find_element_by_tag_name("video")
+				#pega o link do video
+				link = video.get_attribute("src")
+				
+				#requisita o video
+				video = requests.get(link, stream=True)
 
-			if self.finalizar:
+				self.headers = video.headers
+				self.total = 0
 
-				break
+				#escreve cada fatia em um arquivo
+				with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
 
-			self.total = 0
+					for chunk in video.iter_content(chunk_size=1024):
 
-			self.firefox.get(f"{self.link_anime}/{ep}")
-			self.firefox.switch_to.frame(0)
-			video = self.firefox.find_element_by_tag_name("video")
-			link = video.get_attribute("src")
+						arquivo.write(chunk)
+						self.total += 1024
+				
+			self.firefox.close()
 			
-			#requisita o video
-			video = requests.get(link, stream=True)
+		except KeyboardInterrupt:
 
-			self.header_total_arquivo = video.headers
-			self.total = 0
-			#escreve cada fatia em um arquivo
-			with open(f"{self.nome_anime}-{ep}.mp4", "wb") as arquivo:
+			self.completo = True
+			self.firefox.close()
+			print("programa parado")
 
-				for chunk in video.iter_content(chunk_size=5120):
-					
-					if self.finalizar:
-
-						break
-
-					arquivo.write(chunk)
-					self.total += 5120
-			
-		self.completo = True
-		self.firefox.close()
 	
 	def baixando(self):
 		
