@@ -75,10 +75,17 @@ class DownAnime():
 			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
 
 			for ep in eps:
-				
+				#abre a pagina do episodio
 				self.firefox.get(f"{self.link_anime}/{ep}")
-				self.firefox.switch_to.frame(0)
+				#busca os elementos que contem os players de video
+				video = self.firefox.find_elements_by_class_name("btVideo")
+				#pega o link do player
+				video = video[1].get_attribute("data-video-url")
+				#requisita a pagina do player
+				self.firefox.get(f"{video}")
+				#busca o elemento video
 				video = self.firefox.find_element_by_tag_name("video")
+				#pega o link do video
 				link = video.get_attribute("src")
 				
 				#requisita o video
