@@ -2,7 +2,7 @@ from downanime import DownAnime
 from time import sleep
 from threading import Thread
 
-def barraDeProgresso(episodios):
+def barra_de_progresso(episodios):
 
 	global down
 
@@ -38,6 +38,6 @@ while True:
 		break
 
 #chama a função para baixar o ep selecionado
-thread = Thread(target=barraDeProgresso, args=(episodios))
+thread = Thread(target=barra_de_progresso, args=(episodios))
 thread.start()
 down.baixar_ep(episodios)
