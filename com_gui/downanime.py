@@ -10,7 +10,7 @@ class DownAnime():
 
 		#instancia o RoboBrowser, seta o parser como html.parser para que analise o html
 		self.escolha_anime =  None
-		self.completo = False
+		self.completo = True
 		self.link = "https://www.superanimes.org/busca?parametro="
 		self.resultados = []
 		self.anime_episodios = []
@@ -73,6 +73,7 @@ class DownAnime():
 		try:
 
 			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
+			self.completo = False
 
 			for ep in eps:
 				#abre a pagina do episodio
@@ -103,6 +104,7 @@ class DownAnime():
 						self.total += 1024
 				
 			self.firefox.close()
+			self.completo = True
 			
 		except KeyboardInterrupt:
 

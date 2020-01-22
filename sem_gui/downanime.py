@@ -73,6 +73,7 @@ class DownAnime():
 		try:
 
 			self.firefox = webdriver.Firefox(firefox_options=self.opcoes)
+			self.completo = False
 
 			for ep in eps:
 				#abre a pagina do episodio
@@ -103,6 +104,7 @@ class DownAnime():
 						self.total += 1024
 				
 			self.firefox.close()
+			self.completo = True
 			
 		except KeyboardInterrupt:
 

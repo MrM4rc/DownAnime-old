@@ -107,9 +107,9 @@ class Janela_Principal(QMainWindow):
 
 		global down
 
-		if down.total < int(down.header_total_arquivo["content-length"]):
+		if down.total < int(down.headers["content-length"]):
 			#calculo de porcentagem para pega progresso do download
-			porcentagem = down.total/int(down.header_total_arquivo["content-length"])
+			porcentagem = down.total/int(down.headers["content-length"])
 			#multiplica o valor obtido no calculo de porcentagem para pega um valor mais redondo
 			porcentagem *= 100
 			#altera o valor da barra de progresso
