@@ -9,21 +9,32 @@ from threading import Thread, Event
 from platform import system
 from time import sleep
 
-#instancia do DownAnime
+# instancia do DownAnime
 down = DownAnime()
 
 sistema = system()
+
 
 class Label(QLabel):
 
 	def __init__(self, **kwargs):
 
 		super(Label, self).__init__(**kwargs)
-
-		self.setStyleSheet("""
-				color: white;
-				background-color: #606060;
-				""")
+		# Trata o nome do episódio para verifica se já foi assistido
+		t = self.text().split(';')
+		self.setText(t[0])
+		if len(t) > 1 and t[1] == 'V':
+			
+			self.setStyleSheet('''
+					color: red;
+					background-color: green;
+					''')
+		else:
+			
+			self.setStyleSheet("""
+					color: white;
+					background-color: #606060;
+					""")
 		self.marcar = True
 		self.clicado = False
 
@@ -109,7 +120,7 @@ class Janela_Principal(QMainWindow):
 
 		if down.total < int(down.headers["content-length"]):
 			#calculo de porcentagem para pega progresso do download
-			porcentagem = down.total/int(down.headers["content-length"])
+			porcentagem = down.total / int(down.headers["content-length"])
 			#multiplica o valor obtido no calculo de porcentagem para pega um valor mais redondo
 			porcentagem *= 100
 			#altera o valor da barra de progresso
