@@ -3,4 +3,5 @@ teste.py
 __pycache__
 .gitignore
 gecko*
-
+teste/
+downenv/
